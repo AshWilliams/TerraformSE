@@ -1,0 +1,11 @@
+    1  git clone https://github.com/andyt530/py-az2tf.git
+    2  cd py-az2tf/
+    3  ls
+    4  az login
+    5  az account set -s "Subscription Name"
+    6  az account list
+    7  ls
+    8  ./az2tf.sh -s "xxxxxxx-xxxxx-xxxx-xxxxx-xxxxxxx" -v yes
+
+   10  ls
+
