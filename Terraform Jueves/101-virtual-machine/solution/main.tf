@@ -21,11 +21,36 @@ resource "azurerm_subnet" "main" {
   address_prefix       = "10.0.1.0/24"
 }
 
+# Create Network Security Group and rule
+resource "azurerm_network_security_group" "myterraformnsg" {
+    name                = "myNetworkSecurityGroup"
+    location            = "${azurerm_resource_group.main.location}"
+    resource_group_name = azurerm_resource_group.main.name
+    
+    security_rule {
+        name                       = "SSH"
+        priority                   = 1001
+        direction                  = "Inbound"
+        access                     = "Allow"
+        protocol                   = "Tcp"
+        source_port_range          = "*"
+        destination_port_range     = "22"
+        source_address_prefix      = "*"
+        destination_address_prefix = "*"
+    }
+
+    tags = {
+        environment = "Terraform Demo"
+    }
+}
+
+
 # Linux
 resource "azurerm_network_interface" "linux" {
   name                = "${var.prefix}-linuxnic"
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
+  network_security_group_id = "${azurerm_network_security_group.myterraformnsg.id}"
 
   ip_configuration {
     name                          = "config1"
@@ -81,65 +106,4 @@ output "linux-private-ip" {
 output "linux-public-ip" {
   value       = azurerm_public_ip.linux.ip_address
   description = "Linux Public IP Address"
-}
-
-
-# Windows
-resource "azurerm_network_interface" "windows" {
-  name                = "${var.prefix}-windowsnic"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
-
-  ip_configuration {
-    name                          = "config1"
-    subnet_id                     = azurerm_subnet.main.id
-    private_ip_address_allocation = "dynamic"
-    public_ip_address_id          = azurerm_public_ip.windows.id
-  }
-}
-
-resource "azurerm_virtual_machine" "windows" {
-  name                  = "${var.prefix}-windowsvm"
-  location              = azurerm_resource_group.main.location
-  resource_group_name   = azurerm_resource_group.main.name
-  network_interface_ids = [azurerm_network_interface.windows.id]
-  vm_size               = "Standard_A2_v2"
-
-  storage_os_disk {
-    name              = "${var.prefix}windowsvm-osdisk"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
-  }
-
-  os_profile {
-    computer_name  = "${var.prefix}vm"
-    admin_username = "testadmin"
-    admin_password = "Password1234!"
-  }
-
-  storage_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter"
-    version   = "latest"
-  }
-  os_profile_windows_config {}
-}
-
-resource "azurerm_public_ip" "windows" {
-  name                = "${var.prefix}-windows-pubip"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
-  allocation_method   = "Static"
-}
-
-output "windows-private-ip" {
-  value       = azurerm_network_interface.windows.private_ip_address
-  description = "Windows Private IP Address"
-}
-
-output "windows-public-ip" {
-  value       = azurerm_public_ip.linux.ip_address
-  description = "Windows Public IP Address"
 }
