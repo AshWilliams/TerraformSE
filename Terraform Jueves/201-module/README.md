@@ -59,7 +59,7 @@ $ export ARM_TENANT_ID="00000000-0000-0000-0000-000000000000"
 
 Change directory into a folder specific to this challenge.
 
-For example: `cd ~/TerraformWorkshop/201-vm-module/`.
+For example: `cd solution/`.
 
 In order to organize your code, create the following folder structure with `main.tf` files.
 
